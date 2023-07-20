@@ -89,11 +89,13 @@ export class Job {
 
   async run () {
     if (!this.started) {
-      this.log.debug(`Job stopped, skipping run`);
+      this.log.debug(`Job stopped, skipping run`)
+      return
     }
 
     if (this.isExecutingAnIteration) {
       this.log.trace(`Job still executing previous iteration, skipping run`)
+      return
     }
 
     try {
@@ -155,6 +157,8 @@ export const createJob = (name: string, job: JobConfig) => {
     isCronRunning = true
     _startCron()
   }
+
+  return jobs.get(name)!
 }
 
 
@@ -190,6 +194,7 @@ export const deleteAllJobs = () => {
 export const shutdown = () => {
   if (cronIntervalTimer) {
     clearInterval(cronIntervalTimer)
+    isCronRunning = false
   }
   deleteAllJobs()
 }
