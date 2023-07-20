@@ -1,0 +1,10 @@
+{
+  "inputFiles": [
+    "./src"
+  ],
+  "excludeProtected": true,
+  "stripInternal": true,
+  "theme": "minimal",
+  "mode": "file",
+  "out": "docs"
+}

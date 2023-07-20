@@ -1,0 +1,72 @@
+{
+  "name": "cron-async",
+  "version": "1.0.0",
+  "description": "Execute something on a schedule, using cron syntax, with async/await support.",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "type": "module",
+  "types": "dist/esm/index.d.ts",
+  "author": "Ramesh Nair <ram@hiddentao.com>",
+  "homepage": "https://hiddentao.github.io/cron-async",
+  "license": "MIT",
+  "keywords": [
+    "cron",
+    "async",
+    "await",
+    "schedule",
+    "scheduler",
+    "job",
+    "task",
+    "promise",
+    "promise-based",
+    "promise-based-cron",
+    "promise-based-scheduler",
+    "promise-based-schedule",
+    "promise-based-job",
+    "promise-based-task"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "package.json",
+    "package-lock.json",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
+  "devDependencies": {
+    "@commitlint/cli": "^17.6.7",
+    "@commitlint/config-conventional": "^17.6.7",
+    "@jest/globals": "^29.6.1",
+    "@types/chai": "^4.3.5",
+    "@types/jest": "^29.5.3",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.4.2",
+    "chai": "^4.3.7",
+    "gh-pages": "^5.0.0",
+    "husky": "^8.0.3",
+    "jest": "^29.6.1",
+    "mocha": "^10.2.0",
+    "ts-jest": "^29.1.1",
+    "typedoc": "^0.24.8",
+    "typescript": "^5.1.6"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "mocha",
+    "build-docs": "rm -rf ./docs && typedoc",
+    "publish-docs": "npm run build-docs && gh-pages -d docs",
+    "prepublishOnly": "npm run build",
+    "postpublish": "npm run publish-docs",
+    "commitlint": "commitlint --edit"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "dependencies": {
+    "cron-schedule": "^4.0.0",
+    "ts-node": "^10.9.1"
+  }
+}
