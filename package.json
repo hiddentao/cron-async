@@ -1,6 +1,6 @@
 {
   "name": "cron-async",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Execute something on a schedule, using cron syntax, with async/await support.",
   "type": "module",
   "main": "dist/index.js",
