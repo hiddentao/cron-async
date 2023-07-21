@@ -1,15 +1,9 @@
 {
   "name": "cron-async",
-  "version": "1.0.3",
+  "version": "1.0.2",
   "description": "Execute something on a schedule, using cron syntax, with async/await support.",
-  "exports": {
-    ".": {
-      "import": {
-        "default": "./dist/index.js",
-        "types": "./dist/index.d.ts"
-      }
-    }
-  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "Ramesh Nair <ram@hiddentao.com>",
   "homepage": "https://hiddentao.github.io/cron-async",
   "license": "MIT",
