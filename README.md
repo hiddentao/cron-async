@@ -6,7 +6,7 @@
 Javascript library for executing tasks on a schedule, using cron syntax, with async/await support. It is inspired by [node-cron](https://www.npmjs.com/package/cron).
 
 It's smart at handling async jobs. All executions are wrapped in a `try-catch` clause and errors are caught and logged. It also waits until the current iteration of 
-a job has finished executing before starting the next iteration, regardless of the jobs's schedule.
+a job has finished executing before starting the next iteration, regardless of the job's schedule.
 
 Features:
 
