@@ -1,9 +1,10 @@
 {
   "name": "cron-async",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Execute something on a schedule, using cron syntax, with async/await support.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "author": "Ramesh Nair <ram@hiddentao.com>",
   "homepage": "https://hiddentao.github.io/cron-async",
   "license": "MIT",
@@ -69,5 +70,9 @@
   "dependencies": {
     "cron-schedule": "^4.0.0",
     "ts-node": "^10.9.1"
+  },
+  "engineStrict": true,
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
