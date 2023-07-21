@@ -1,10 +1,7 @@
 {
-  "inputFiles": [
-    "./src"
-  ],
+  "entryPoints": ["src/index.ts"],
+  "readme": "README.md",
   "excludeProtected": true,
-  "stripInternal": true,
-  "theme": "minimal",
-  "mode": "file",
+  "excludePrivate": true,
   "out": "docs"
 }

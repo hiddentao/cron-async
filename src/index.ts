@@ -29,173 +29,273 @@ export interface JobConfig {
    * Job schedule in the Linux crontab syntax.
    */
   cron: string
+  /** 
+   * Function to execute each iteration of this job. 
+   * @param job Job object.
+   */
   onTick: (job: Job) => Promise<void>
+  /**
+   * Logger object to use for logging.
+   */
   log?: CronLogger
+  /**
+   * Function to execute when an error occurs.
+   * @param err Error object.
+   */ 
   onError?: (err: Error) => void
+  /**
+   * If true, the job will not be started automatically.
+   * @default false
+   */
   dontAutoRun?: boolean
 }
 
+
+/**
+ * Logger that prepends a tag to all log messages.
+ */
 class JobLogger implements CronLogger {
-  private logger: CronLogger
-  private tag: string
+  private logger: CronLogger;
+  private tag: string;
 
-  constructor (logger: CronLogger, tag: string) {
-    this.logger = logger
-    this.tag = tag
-  }
-  
-  trace (msg: string) {
-    this.logger.trace(`[${this.tag}] ${msg}`)
-  }
-
-  debug (msg: string) {
-    this.logger.debug(`[${this.tag}] ${msg}`)
+  /**
+   * Constructor.
+   * @param logger base logger.
+   * @param tag log message prefix tag.
+   */
+  constructor(logger: CronLogger, tag: string) {
+    this.logger = logger;
+    this.tag = tag;
   }
 
-  error (msg: string) {
-    this.logger.error(`[${this.tag}] ${msg}`)
+  /**
+   * Log a trace level log message.
+   * @param msg log message.
+   */
+  trace(msg: any) {
+    this.logger.trace(`[${this.tag}] ${msg}`);
+  }
+
+  /**
+   * Log a debug level log message.
+   * @param msg log message.
+   */
+  debug(msg: any) {
+    this.logger.debug(`[${this.tag}] ${msg}`);
+  }
+
+  /**
+   * Log an error message.
+   * @param msg log message.
+   */
+  error(msg: any) {
+    this.logger.error(`[${this.tag}] ${msg}`);
   }
 }
 
 export class Job {
-  private name: string
-  private config: JobConfig
-  private cron: ReturnType<typeof parseCronExpression>
-  private started: boolean = false
-  private isExecutingAnIteration: boolean = false
-  private lastIterationAt: Date = new Date()
-  private log: JobLogger
+  private parent: Cron;
+  private name: string;
+  private config: JobConfig;
+  private cron: ReturnType<typeof parseCronExpression>;
+  private started: boolean = false;
+  private isExecutingAnIteration: boolean = false;
+  private lastIterationAt: Date = new Date();
+  private log: JobLogger;
+  private numIterations: number = 0;
 
-
-  constructor(name: string, config: JobConfig) {
-    this.name = name
-    this.config = config
-    this.cron = parseCronExpression(config.cron)
+  /**
+   * Constructor. 
+   * @param parent Parent cron instance. 
+   * @param name Job name.
+   * @param config Job configuration.
+   */
+  constructor(parent: Cron, name: string, config: JobConfig) {
+    this.parent = parent;
+    this.name = name;
+    this.config = config;
+    this.cron = parseCronExpression(config.cron);
     this.started = !config.dontAutoRun;
-    this.log = new JobLogger(config.log || console, name)
+    this.log = new JobLogger(config.log || console, name);
   }
 
+  /**
+   * Start/restart the job.
+   */
   start() {
     this.started = true;
   }
 
+  /**
+   * Stop the job.
+   */
   stop() {
     this.started = false;
   }
 
-  shouldRun (d: Date) {
-    return this.cron.getNextDate(this.lastIterationAt).getTime() <= d.getTime()
+  /**
+   * Check if the job should run at the given time. 
+   * @param d Date to check. 
+   * @returns true if the job should run, false otherwise. 
+   */
+  shouldRun(d: Date) {
+    return this.cron.getNextDate(this.lastIterationAt).getTime() <= d.getTime();
   }
 
-  async run () {
+  /**
+   * Get the number of iterations this job has run. 
+   * @returns number of iterations. 
+   */
+  getNumIterations() {
+    return this.numIterations;
+  }
+
+  /**
+   * Run the job. 
+   */
+  async run() {
     if (!this.started) {
-      this.log.debug(`Job stopped, skipping run`)
-      return
+      this.log.debug(`Job stopped, skipping run`);
+      return;
     }
 
     if (this.isExecutingAnIteration) {
-      this.log.trace(`Job still executing previous iteration, skipping run`)
-      return
+      this.log.trace(`Job still executing previous iteration, skipping run`);
+      return;
     }
 
     try {
-      this.lastIterationAt = new Date()
-      this.isExecutingAnIteration = true
+      this.lastIterationAt = new Date();
+      this.numIterations++;
+      this.isExecutingAnIteration = true;
       this.log.debug(`Running job`);
 
       // do stuff
-      await this.config.onTick(this)
+      await this.config.onTick(this);
 
       this.log.debug(`Finished running job`);
     } catch (err: any) {
-      this.log.error(`Error running job: ${err.message}`)
+      this.log.error(`Error running job: ${err.message}`);
 
       if (this.config.onError) {
-        this.config.onError(err)
+        this.config.onError(err);
       }
     } finally {
-      this.isExecutingAnIteration = false
+      this.isExecutingAnIteration = false;
     }
   }
 
-  destroy () {
+  /**
+   * Destroy the job.
+   * 
+   * This will stop the job if it is running and remove it from the parent cron instance.
+   */
+  destroy() {
     this.stop()
-    jobs.delete(this.name)
+    this.parent.deleteJob(this.name)
   }
 }
 
-const jobs: Map<string, Job> = new Map()
 
-let isCronRunning = false
-let cronIntervalTimer: any = null
+/**
+ * A cron instance.
+ */
+export class Cron {
+  private jobs: Map<string, Job> = new Map();
+  private isCronRunning = false;
+  private cronIntervalTimer: any = null;
 
-const _startCron = () => {
-  cronIntervalTimer = setInterval(() => {
-    const now = new Date()
-
-    for (const [ name, job ] of jobs) {
-      if (job.shouldRun(now)) {
-        job.run()
-      }
+  /**
+   * Create a new job. 
+   * @param name Unique job name. 
+   * @param job Job configuration. 
+   * @returns Job object. 
+   */
+  public createJob(name: string, job: JobConfig) {
+    if (this.jobs.has(name)) {
+      throw new Error(`Job with name ${name} already exists`);
     }
 
-    Object.values(jobs).forEach(job => {
-      job.run()
-    }, 100)
-  })
-}
+    this.jobs.set(name, new Job(this, name, job))
 
+    if (!this.isCronRunning) {
+      this.isCronRunning = true;
+      this._startCron();
+    }
 
-export const createJob = (name: string, job: JobConfig) => {
-  if (jobs.has(name)) {
-    throw new Error(`Job with name ${name} already exists`)
+    return this.jobs.get(name)!;
   }
 
-  jobs.set(name, new Job(name, job))
-
-  if (!isCronRunning) {
-    isCronRunning = true
-    _startCron()
+  /**
+   * Get a job by name. 
+   * @param name Job name. 
+   * @returns Job object. 
+   */
+  public getJob(name: string) {
+    return this.jobs.get(name);
   }
 
-  return jobs.get(name)!
-}
-
-
-export const getJob = (name: string) => {
-  return jobs.get(name)
-}
-
-
-export const getAllJob = () => {
-  return [...jobs.values()]
-}
-
-
-export const deleteJob = (name: string) => {
-  if (!jobs.has(name)) {
-    throw new Error(`Job with name ${name} does not exist`)
+  /**
+   * Get all jobs. 
+   * @returns Array of all jobs. 
+   */
+  public getAllJobs() {
+    return [...this.jobs.values()];
   }
 
-  jobs.get(name)!.stop()
-  jobs.delete(name)
-}
+  /**
+   * Delete a job by name.
+   * @param name Job name.
+   */
+  public deleteJob(name: string) {
+    if (!this.jobs.has(name)) {
+      throw new Error(`Job with name ${name} does not exist`);
+    }
 
-
-export const deleteAllJobs = () => {
-  Object.values(jobs).forEach(job => {
-    job.stop()
-  })
-  jobs.clear()
-}
-
-
-
-export const shutdown = () => {
-  if (cronIntervalTimer) {
-    clearInterval(cronIntervalTimer)
-    isCronRunning = false
+    this.jobs.get(name)!.stop();
+    this.jobs.delete(name);
   }
-  deleteAllJobs()
+
+  /**
+   * Delete all jobs. 
+   */
+  public deleteAllJobs() {
+    Object.values(this.jobs).forEach((job) => {
+      job.stop();
+    });
+    this.jobs.clear();
+  }
+
+  /**
+   * Shutdown the cron instance. 
+   */
+  public shutdown() {
+    if (this.cronIntervalTimer) {
+      clearInterval(this.cronIntervalTimer)
+      this.isCronRunning = false
+    }
+    this.deleteAllJobs()
+  }
+
+  private _startCron() {
+    if (this.cronIntervalTimer) {
+      clearInterval(this.cronIntervalTimer);
+    }
+
+    this.cronIntervalTimer = setInterval(() => {
+      const now = new Date();
+
+      for (const [name, job] of this.jobs) {
+        if (job.shouldRun(now)) {
+          job.run();
+        }
+      }
+
+      Object.values(this.jobs).forEach((job) => {
+        job.run();
+      }, 100);
+    });
+  }
 }
+
 
