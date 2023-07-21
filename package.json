@@ -2,7 +2,6 @@
   "name": "cron-async",
   "version": "1.0.4",
   "description": "Execute something on a schedule, using cron syntax, with async/await support.",
-  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Ramesh Nair <ram@hiddentao.com>",
@@ -47,6 +46,7 @@
     "mocha": "^10.2.0",
     "release-it": "^16.1.3",
     "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
     "typedoc": "^0.24.8",
     "typescript": "^5.1.6"
   },
@@ -68,8 +68,7 @@
     }
   },
   "dependencies": {
-    "cron-schedule": "^4.0.0",
-    "ts-node": "^10.9.1"
+    "cron-schedule": "^3.0.6"
   },
   "engineStrict": true,
   "engines": {
