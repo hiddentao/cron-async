@@ -135,6 +135,30 @@ describe("job", () => {
     expect(ret).to.equal('s')
   })
 
+  it("destroy job", async function () {
+    this.timeout(5000);
+
+    let ret = "";
+    const log = testLogger();
+
+    const job = this.cron.createJob("test", {
+      cron: "*/1 * * * * *",
+      onTick: async () => {
+        ret += "s";
+      },
+      log,
+    });
+
+    await setTimeout(1200);
+
+    job.destroy()
+
+    await setTimeout(1200);
+
+    expect(this.cron.getJob("test")).to.be.undefined;
+    expect(ret).to.equal("s");
+  });
+
   it("delete invalid job", async function () {
     expect(() => {
       this.cron.deleteJob("test")
