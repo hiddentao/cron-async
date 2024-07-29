@@ -238,7 +238,7 @@ describe("job", () => {
 
     await setTimeout(2000);
 
-    expect(log.logs.debug[0]).to.eql("[test] Job stopped, skipping run")
+    expect(log.logs.trace[0]).to.eql("[test] Job stopped, skipping run")
     expect(job.getNumIterations()).to.equal(0)
 
     job.start();
@@ -272,7 +272,7 @@ describe("job", () => {
 
     expect(ret === 'ss' || ret === 's').to.be.true
 
-    expect(log.logs.debug[0]).to.eql("[test] Job stopped, skipping run")
+    expect(log.logs.trace[0]).to.eql("[test] Job stopped, skipping run")
   })
 
   it("error handling", async function () {

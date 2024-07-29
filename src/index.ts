@@ -155,7 +155,7 @@ export class Job {
    */
   async run() {
     if (!this.started) {
-      this.log.debug(`Job stopped, skipping run`);
+      this.log.trace(`Job stopped, skipping run`);
       return;
     }
 
