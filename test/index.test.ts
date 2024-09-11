@@ -1,9 +1,9 @@
 import { describe, it, afterEach } from "mocha"
-import { setTimeout } from "timers/promises"
+import { setTimeout } from "node:timers/promises"
 
 import {
   Job,
-  CronLogger,
+  type CronLogger,
   Cron,
 } from '../src'
 
@@ -149,7 +149,7 @@ describe("job", () => {
       log,
     });
 
-    await setTimeout(1200);
+    await setTimeout(1600);
 
     job.destroy()
 
@@ -239,12 +239,14 @@ describe("job", () => {
     await setTimeout(2000);
 
     expect(log.logs.trace[0]).to.eql("[test] Job stopped, skipping run")
+    expect(job.isStarted()).to.be.false
     expect(job.getNumIterations()).to.equal(0)
 
     job.start();
 
     await setTimeout(1200);
 
+    expect(job.isStarted()).to.be.true
     expect(job.getNumIterations()).to.be.greaterThan(0)
   })
 
@@ -262,12 +264,13 @@ describe("job", () => {
       log,
     });
 
+    expect(job.isStarted()).to.be.true    
     job.stop()
-
+    expect(job.isStarted()).to.be.false
     await setTimeout(2000)
 
     job.start()
-
+    expect(job.isStarted()).to.be.true
     await setTimeout(1000);
 
     expect(ret === 'ss' || ret === 's').to.be.true

@@ -133,6 +133,12 @@ export class Job {
     this.started = false;
   }
 
+  
+  isStarted(): boolean {
+    return this.started;
+  }
+
+
   /**
    * Check if the job should run at the given time. 
    * @param d Date to check. 
