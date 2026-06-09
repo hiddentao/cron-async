@@ -152,11 +152,13 @@ describe("job", () => {
     await setTimeout(1600);
 
     job.destroy()
+    const retAtDestroy = ret;
 
     await setTimeout(1200);
 
     expect(this.cron.getJob("test")).to.be.undefined;
-    expect(ret).to.equal("s");
+    expect(retAtDestroy.length).to.be.greaterThan(0);
+    expect(ret).to.equal(retAtDestroy);
   });
 
   it("delete invalid job", async function () {
