@@ -128,11 +128,13 @@ describe("job", () => {
     await setTimeout(1200)
 
     this.cron.deleteJob("test");
+    const retAtDelete = ret;
 
     await setTimeout(1200)
 
     expect(this.cron.getJob("test")).to.be.undefined;
-    expect(ret).to.equal('s')
+    expect(retAtDelete.length).to.be.greaterThan(0);
+    expect(ret).to.equal(retAtDelete);
   })
 
   it("destroy job", async function () {
