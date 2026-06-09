@@ -296,11 +296,7 @@ export class Cron {
           job.run();
         }
       }
-
-      Object.values(this.jobs).forEach((job) => {
-        job.run();
-      }, 100);
-    });
+    }, 100);
   }
 }
 

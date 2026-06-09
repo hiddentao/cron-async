@@ -327,4 +327,22 @@ describe("job", () => {
 
     expect(numIterations).to.equal(2)
   })
+
+  it("does not busy-loop while iteration is stuck", async function () {
+    this.timeout(5000);
+
+    const log = testLogger();
+
+    this.cron.createJob("job", {
+      cron: "*/1 * * * * *",
+      onTick: async () => {
+        await setTimeout(1000);
+      },
+      log,
+    });
+
+    await setTimeout(1000)
+
+    expect(log.logs.trace.length).to.be.lessThan(20)
+  })
 })
